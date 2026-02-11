@@ -1,0 +1,69 @@
+,ABCD_name,ggseg_dk_name,Full_Name
+1,banksstslh,lh_bankssts,Left Bank of the Superior Temporal Sulcus
+2,banksstsrh,rh_bankssts,Right Bank of the Superior Temporal Sulcus
+3,cdacatelh,lh_caudalanteriorcingulate,Left Caudal Anterior Cingulate
+4,cdacaterh,rh_caudalanteriorcingulate,Right Caudal Anterior Cingulate
+5,cdmdfrlh,lh_caudalmiddlefrontal,Left Caudal Middle Frontal
+6,cdmdfrrh,rh_caudalmiddlefrontal,Right Caudal Middle Frontal
+7,cuneuslh,lh_cuneus,Left Cuneus
+8,cuneusrh,rh_cuneus,Right Cuneus
+9,ehinallh,lh_entorhinal,Left Entorhinal
+10,ehinalrh,rh_entorhinal,Right Entorhinal
+11,frpolelh,lh_frontalpole,Left Frontal Pole
+12,frpolerh,rh_frontalpole,Right Frontal Pole
+13,fusiformlh,lh_fusiform,Left Fusiform
+14,fusiformrh,rh_fusiform,Right Fusiform
+15,ifpllh,lh_inferiorparietal,Left Inferior Parietal
+16,ifplrh,rh_inferiorparietal,Right Inferior Parietal
+17,iftmlh,lh_inferiortemporal,Left Inferior Temporal
+18,iftmrh,rh_inferiortemporal,Right Inferior Temporal
+19,ihcatelh,lh_isthmuscingulate,Left Isthmus Cingulate
+20,ihcaterh,rh_isthmuscingulate,Right Isthmus Cingulate
+21,insulalh,lh_insula,Left Insula
+22,insularh,rh_insula,Right Insula
+23,linguallh,lh_lingual,Left Lingual
+24,lingualrh,rh_lingual,Right Lingual
+25,lobfrlh,lh_lateralorbitofrontal,Left Lateral Orbitofrontal
+26,lobfrrh,rh_lateralorbitofrontal,Right Lateral Orbitofrontal
+27,locclh,lh_lateraloccipital,Left Lateral Occipital
+28,loccrh,rh_lateraloccipital,Right Lateral Occipital
+29,mdtmlh,lh_middletemporal,Left Middle Temporal
+30,mdtmrh,rh_middletemporal,Right Middle Temporal
+31,mobfrlh,"lh_medialorbitofrontal	",Left Medial Orbitofrontal
+32,mobfrrh,"rh_medialorbitofrontal	",Right Medial Orbitofrontal
+33,paracnlh,lh_paracentral,Left Paracentral
+34,paracnrh,rh_paracentral,Right Paracentral
+35,parahpallh,lh_parahippocampal,Left Parahippocampal
+36,parahpalrh,rh_parahippocampal,Right Parahippocampal
+37,parsobislh,lh_parsorbitalis,Left Pars Orbitalis
+38,parsobisrh,rh_parsorbitalis,Right Pars Orbitalis
+39,parsopclh,"lh_parsopercularis	",Left Pars Opercularis
+40,parsopcrh,rh_parsopercularis,Right Pars Opercularis
+41,parstgrislh,lh_parstriangularis,Left Pars Triangularis
+42,parstgrisrh,rh_parstriangularis,Right Pars Triangularis
+43,pclh,"lh_precuneus	",Left Precuneus
+44,pcrh,"rh_precuneus	",Right Precuneus
+45,pericclh,lh_pericalcarine,Left Pericalcarine
+46,periccrh,rh_pericalcarine,Right Pericalcarine
+47,postcnlh,lh_postcentral,Left Postcentral
+48,postcnrh,rh_postcentral,Right Postcentral
+49,precnlh,lh_precentral,Left Precentral
+50,precnrh,rh_precentral,Right Precentral
+51,ptcatelh,lh_posteriorcingulate,Left Posterior Cingulate
+52,ptcaterh,rh_posteriorcingulate,Right Posterior Cingulate
+53,rracatelh,lh_rostralanteriorcingulate,Left Rostral Anterior Cingulate
+54,rracaterh,"rh_rostralanteriorcingulate	",Right Rostral Anterior Cingulate
+55,rrmdfrlh,lh_rostralmiddlefrontal,Left Rostral Middle Frontal
+56,rrmdfrrh,rh_rostralmiddlefrontal,Right Rostral Middle Frontal
+57,smlh,lh_supramarginal,Left Supramarginal
+58,smrh,rh_supramarginal,Right Supramarginal
+59,sufrlh,lh_superiorfrontal,Left Superior Frontal
+60,sufrrh,rh_superiorfrontal,Right Superior Frontal
+61,supllh,lh_superiorparietal,Left Superior Parietal
+62,suplrh,rh_superiorparietal,Right Superior Parietal
+63,sutmlh,lh_superiortemporal,Left Superior Temporal
+64,sutmrh,rh_superiortemporal,Right Superior Temporal
+65,tmpolelh,lh_temporalpole,Left Temporal Pole
+66,tmpolerh,rh_temporalpole,Right Temporal Pole
+67,trvtmlh,lh_transversetemporal,Left Transverse Temporal
+68,trvtmrh,rh_transversetemporal,Right Transverse Temporal
