@@ -25,6 +25,9 @@ This R Markdown template provides a streamlined workflow for extracting statisti
 3. Organize results into a tibble with proper ggseg labels
 4. Generate brain plots and forest plots
 
+   <img width="5475" height="2700" alt="image" src="https://github.com/user-attachments/assets/cd010e37-4f41-4f9b-b58c-5c078daa273d" />
+
+
 ## Applications
 
 This template is ideal for researchers working with ABCD Study data who want to:
