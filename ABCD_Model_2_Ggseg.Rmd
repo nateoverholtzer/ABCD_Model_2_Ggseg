@@ -1,0 +1,393 @@
+---
+title: "ABCD Model Extraction and ggseg Visualization"
+author: "L. Nate Overholtzer"
+date: "`r Sys.Date()`"
+output: html_document
+---
+This RMD provides the code that is used to automate conversion of mapping regression parameters from LME models to Brain visualizing using the ggseg packaged the Adolescent Brain Cognitive Development Study (ABCD Study®). 
+The RMD was originally created by L. Nate Overholtzer. 
+
+© 2026 L. Nate Overholtzer. Developed as part of the Herting Lab, University of Southern California. 
+Releases by L. Nate Overholtzer. 
+https://orcid.org/0000-0002-6260-2205 
+https://github.com/nateoverholtzer 
+
+Reuse and adaptation are permitted with attribution; please retain this header and document any modifications (date + summary), acknowledging L. Nate Overholtzer (ORCID: 0000-0002-6260-2205). For inquiries, contact: lnoverho@usc.edu 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+# Load required libraries
+library(tidyverse)
+library(ggplot2)
+library(ggseg)
+library(lme4)
+library(broom.mixed)
+library(effectsize)
+library(parameters)
+
+# Load your data and models
+# load("path/to/your/models.RData")
+
+# Load ABCD to ggseg mapping file
+# This file maps ABCD brain region names to ggseg atlas names
+# ABCD2ggseg <- read_csv("path/to/ABCD2ggseg.csv") %>% select(-1)
+```
+
+## Overview
+
+This template extracts results from linear mixed-effects models (LME) fitted on ABCD brain imaging outcomes and visualizes them using the ggseg package.
+
+**Required inputs:**
+1. A list of fitted `lmerMod` objects (one per brain region)
+2. A mapping file (ABCD2ggseg) that converts ABCD region names to ggseg atlas labels
+3. Specification of predictors of interest
+
+**Outputs:**
+- Brain plots showing standardized beta coefficients
+- Statistical summaries with p-values, confidence intervals, and effect sizes
+
+---
+
+## 1. Extract Effects Function
+
+This function extracts standardized betas, p-values, Cohen's f², and confidence intervals from a list of LME models.
+
+```{r extract_effects_function}
+# Function to extract effects from a list of models
+# Inputs:
+#   - a_list_of_models_std: List of models fitted on standardized data
+#   - a_list_of_models_unstd: List of models fitted on unstandardized data (for effect sizes)
+#   - predictors: Character vector of predictor names to extract
+
+extract_effects <- function(a_list_of_models_std, a_list_of_models_unstd, predictors) {
+  std_beta_list <- list()
+  p_value_list <- list()
+  cohens_f2_list <- list()
+  ci_lower_list <- list()
+  ci_upper_list <- list()
+  
+  for (roi in names(a_list_of_models_std)) {
+    model <- a_list_of_models_std[[roi]]
+    model_unstd <- a_list_of_models_unstd[[roi]]
+    
+    # Extract fixed effects
+    fixed_effects <- broom.mixed::tidy(model, effects = "fixed")
+    filtered_effects <- fixed_effects[fixed_effects$term %in% predictors, ]
+    std_beta_list[[roi]] <- filtered_effects$estimate
+    
+    # Confidence intervals
+    ci <- as.data.frame(confint(model, method = "Wald"))
+    ci <- ci[rownames(ci) %in% predictors, ]
+    ci_lower_list[[roi]] <- ci[, 1]
+    ci_upper_list[[roi]] <- ci[, 2]
+    
+    # P-values (convert t to p)
+    filtered_effects$p_value <- 2 * pt(-abs(filtered_effects$statistic), 
+                                       df = df.residual(model))
+    p_value_list[[roi]] <- filtered_effects$p_value
+    
+    # Cohen's f² partial
+    cohens_f2_df <- as.data.frame(effectsize::cohens_f_squared(model_unstd, 
+                                                                alternative = "two.sided"))
+    cohens_f2_filtered <- cohens_f2_df[cohens_f2_df$Parameter %in% predictors, 
+                                       c("Parameter", "Cohens_f2_partial")]
+    cohens_f2_list[[roi]] <- setNames(cohens_f2_filtered$Cohens_f2_partial, 
+                                     cohens_f2_filtered$Parameter)
+  }
+  
+  result <- list(
+    std_beta = std_beta_list,
+    p_values = p_value_list,
+    cohens_f2 = cohens_f2_list, 
+    ci_lower = ci_lower_list,
+    ci_upper = ci_upper_list
+  )
+  
+  return(result)
+}
+```
+
+---
+
+## 2. Convert ABCD Names to ggseg Atlas Names
+
+```{r convert_to_dk_function}
+# Function to convert ABCD region names to DK atlas labels
+# Modify the str_remove pattern based on your specific naming convention
+# Examples: "smri_thick_cdk_", "smri_area_cdk_", "smri_vol_cdk_"
+
+convert_to_dk <- function(data, abcd_prefix = "smri_thick_cdk_") {
+  data %>%
+    rename(ABCD_name = coefficient_name) %>%
+    mutate(ABCD_name = str_remove(ABCD_name, abcd_prefix)) %>% 
+    inner_join(ABCD2ggseg, by = c("ABCD_name")) %>%
+    select(ggseg_dk_name)
+}
+```
+
+---
+
+## 3. Example: Cortical Thickness Analysis
+
+Replace this section with your specific analysis.
+
+```{r example_thickness_analysis, eval=FALSE}
+# Define your brain region variables
+# Example: thk_variables <- c("smri_thick_cdk_banksstslh", "smri_thick_cdk_,cuneusrh", ...)
+
+# Define your predictors of interest
+predictors_of_interest <- c("Predictor1", "Predictor2", "Predictor3", "Predictor4")
+
+# Fit models (standardized data)
+Models_std <- vector(mode = "list")
+for (var in brain_region_variables) {
+  formula <- as.formula(paste(var, "~ Predictor1 + Predictor2 + Predictor3 + 
+    Predictor4 + Covariate1 + Covariate2 + Covariate3 + 
+    (1 | random_effect)"))
+  
+  Models_std[[var]] <- lme4::lmer(formula, 
+                                  data = datawizard::standardize(your_data), 
+                                  REML = TRUE)
+}
+
+# Fit models (unstandardized data) for effect sizes
+Models_unstd <- vector(mode = "list")
+for (var in brain_region_variables) {
+  formula <- as.formula(paste(var, "~ Predictor1 + Predictor2 + Predictor3 + 
+    Predictor4 + Covariate1 + Covariate2 + Covariate3 + 
+    (1 | random_effect)"))
+  
+  Models_unstd[[var]] <- lme4::lmer(formula, data = your_data, REML = TRUE)
+}
+
+# Extract values
+extracted_values <- extract_effects(Models_std, Models_unstd, predictors_of_interest)
+```
+
+---
+
+## 4. Organize Results into Tibble
+
+```{r organize_results, eval=FALSE}
+# Extract values for each predictor
+# Predictor 1
+std_beta_pred1 <- sapply(extracted_values$std_beta, function(beta) beta[1])
+p_values_pred1 <- sapply(extracted_values$p_values, function(beta) beta[1])
+ci_lower_pred1 <- sapply(extracted_values$ci_lower, function(beta) beta[1])
+ci_upper_pred1 <- sapply(extracted_values$ci_upper, function(beta) beta[1])
+cohens_f2_pred1 <- sapply(extracted_values$cohens_f2, function(beta) beta[1])
+
+# Predictor 2
+std_beta_pred2 <- sapply(extracted_values$std_beta, function(beta) beta[2])
+p_values_pred2 <- sapply(extracted_values$p_values, function(beta) beta[2])
+ci_lower_pred2 <- sapply(extracted_values$ci_lower, function(beta) beta[2])
+ci_upper_pred2 <- sapply(extracted_values$ci_upper, function(beta) beta[2])
+cohens_f2_pred2 <- sapply(extracted_values$cohens_f2, function(beta) beta[2])
+
+# Predictor 3
+std_beta_pred3 <- sapply(extracted_values$std_beta, function(beta) beta[3])
+p_values_pred3 <- sapply(extracted_values$p_values, function(beta) beta[3])
+ci_lower_pred3 <- sapply(extracted_values$ci_lower, function(beta) beta[3])
+ci_upper_pred3 <- sapply(extracted_values$ci_upper, function(beta) beta[3])
+cohens_f2_pred3 <- sapply(extracted_values$cohens_f2, function(beta) beta[3])
+
+# Predictor 4
+std_beta_pred4 <- sapply(extracted_values$std_beta, function(beta) beta[4])
+p_values_pred4 <- sapply(extracted_values$p_values, function(beta) beta[4])
+ci_lower_pred4 <- sapply(extracted_values$ci_lower, function(beta) beta[4])
+ci_upper_pred4 <- sapply(extracted_values$ci_upper, function(beta) beta[4])
+cohens_f2_pred4 <- sapply(extracted_values$cohens_f2, function(beta) beta[4])
+
+# Repeat for additional predictors...
+
+# Apply FDR correction
+p_fdr_pred1 <- p.adjust(p_values_pred1, method = "fdr", n = length(p_values_pred1))
+p_fdr_pred2 <- p.adjust(p_values_pred2, method = "fdr", n = length(p_values_pred2))
+p_fdr_pred3 <- p.adjust(p_values_pred1, method = "fdr", n = length(p_values_pred3))
+p_fdr_pred4 <- p.adjust(p_values_pred2, method = "fdr", n = length(p_values_pred4))
+# ... continue for all predictors
+
+# Convert ABCD names to DK atlas labels
+# Note ABCD prefix should be changed by measure (e.g., smri_thick_cdk_, smri_area_cdk_, smri_vol_cdk) 
+dk_names <- tibble(coefficient_name = names(Models_std)) %>%
+  convert_to_dk(abcd_prefix = "smri_thick_cdk_")
+
+# Number of ROIs
+n_rois <- length(dk_names$ggseg_dk_name)
+# Number of predictors
+n_predictors <- length(predictors_of_interest)
+
+# Create combined tibble
+results_data <- tibble(
+  label = rep(dk_names$ggseg_dk_name, times = n_predictors),
+  name = rep(dk_names$Full_Name, times = n_predictors),
+  p_values = c(p_values_pred1, p_values_pred2, p_values_pred3, p_values_pred4), 
+  p_fdr = c(p_fdr_pred1, p_fdr_pred2, p_fdr_pred3, p_fdr_pred4), 
+  std_beta = c(std_beta_pred1, std_beta_pred2, std_beta_pred3, std_beta_pred4),
+  ci_lower = c(ci_lower_pred1, ci_lower_pred2, ci_lower_pred3, ci_lower_pred4),
+  ci_upper = c(ci_upper_pred1, ci_upper_pred2, ci_upper_pred3, ci_upper_pred4),
+  cohens_f2 = c(cohens_f2_pred1, cohens_f2_pred2, cohens_f2_pred3, cohens_f2_pred4),
+  group = rep(c("Pred1", "Pred2", "Pred3", "Pred4"), each = n_rois)
+)
+
+print(results_data)
+```
+
+---
+
+## 5. Visualization with ggseg
+
+### Plot 1: All Results (No Thresholding)
+
+**Important note on effect size metric:**
+
+You may choose to plot Cohen's f² instead of standardized betas, especially if standardization would change the significance values (e.g., in some instances of interaction effects). To do this, simply replace `std_beta` with `cohens_f2` in the `aes(fill = ...)` argument of your `geom_brain()` plots and adjust the color scale limits accordingly.
+
+```{r plot_all_results, eval=FALSE}
+plot_all <- 
+  results_data %>%
+  group_by(group) %>%
+  ggplot() +
+  geom_brain(atlas = dk, 
+             position = position_brain(hemi ~ side),
+             aes(fill = std_beta)) +
+  scale_fill_gradient2(high = "red", mid = "white", low = "blue", 
+                       midpoint = 0,
+                       limits = c(-0.10, 0.10),  # Adjust as needed
+                       na.value = 'lightgrey') + 
+  facet_wrap(~group, ncol = 4) +  
+  labs(title = "Standardized Beta Coefficients Across Predictors",
+       fill = "Std Beta") +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),           
+        panel.background = element_blank(),           
+        axis.text = element_blank(),           
+        axis.ticks = element_blank())
+
+plot(plot_all)
+```
+
+### Plot 2: P-value < 0.05 Uncorrected
+
+```{r plot_uncorrected, eval=FALSE}
+plot_uncorrected <- 
+  results_data %>%
+  mutate(std_beta = ifelse(p_values < 0.05, std_beta, NA)) %>%
+  group_by(group) %>%
+  ggplot() +
+  geom_brain(atlas = dk, 
+             position = position_brain(hemi ~ side),
+             aes(fill = std_beta)) +
+  scale_fill_gradient2(high = "red", mid = "white", low = "blue", 
+                       midpoint = 0,
+                       limits = c(-0.10, 0.10),
+                       na.value = 'lightgrey') + 
+  facet_wrap(~group, ncol = 4) +  
+  labs(title = "Results with p < 0.05 (Uncorrected)",
+       fill = "Std Beta") +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),           
+        panel.background = element_blank(),           
+        axis.text = element_blank(),           
+        axis.ticks = element_blank())
+
+plot(plot_uncorrected)
+```
+
+### Plot 3: FDR-Corrected Results
+
+```{r plot_fdr, eval=FALSE}
+plot_fdr <- 
+  results_data %>%
+  mutate(std_beta = ifelse(p_fdr < 0.05, std_beta, NA)) %>%
+  group_by(group) %>%
+  ggplot() +
+  geom_brain(atlas = dk, 
+             position = position_brain(hemi ~ side),
+             aes(fill = std_beta)) +
+  scale_fill_gradient2(high = "red", mid = "white", low = "blue", 
+                       midpoint = 0,
+                       limits = c(-0.10, 0.10),
+                       na.value = 'lightgrey') + 
+  facet_wrap(~group, ncol = 4) +  
+  labs(title = "FDR-Corrected Results (q < 0.05)",
+       fill = "Std Beta") +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),           
+        panel.background = element_blank(),           
+        axis.text = element_blank(),           
+        axis.ticks = element_blank())
+
+plot(plot_fdr)
+```
+
+---
+
+## 6. Forest Plot Visualization
+
+```{r forest_plot, eval=FALSE}
+# Prepare data for forest plot
+plot_data <- results_data %>% 
+  mutate(label = factor(label)) %>%
+  mutate(group = fct_relevel(group, "Pred4", "Pred3", "Pred2", "Pred1"))
+
+# Define custom colors
+custom_colors <- c(
+  "Pred1" = "#F8766D",    
+  "Pred2" = "#7CAE00",   
+  "Pred3" = "#00BFC4",   
+  "Pred4" = "#C77CFF"
+)
+
+# Create forest plot
+forest_plot <- ggplot(plot_data, aes(x = std_beta, y = name, color = group)) +
+  geom_point(position = position_dodge(width = 0.5), size = 3) +
+  geom_errorbarh(aes(xmin = ci_lower, xmax = ci_upper),
+                 position = position_dodge(width = 0.5), height = 0.2) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
+  theme_minimal(base_size = 14) +
+  labs(
+    x = "Standardized Beta (95% CI)",
+    y = NULL,
+    title = "Effect Estimates Across Brain Regions",
+    color = "Predictor"
+  ) + 
+  scale_color_manual(values = custom_colors) +
+  guides(colour = guide_legend(reverse = TRUE)) +
+  theme(panel.grid.minor = element_blank()) +
+  scale_x_continuous(limits = c(-0.10, 0.10), 
+                    breaks = seq(-0.10, 0.10, by = 0.05)) 
+
+plot(forest_plot)
+```
+
+---
+
+## Session Info
+
+```{r session_info}
+sessionInfo()
+```
+
+---
+
+## Notes
+
+**To use this template:**
+
+1. Replace placeholder names:
+   - `brain_region_variables` → your list of ABCD brain outcome variables
+   - `your_data` → your actual dataset name
+   - `Predictor1`, `Predictor2`, etc. → your actual predictor names
+   - `Covariate1`, `Covariate2`, etc. → your actual covariate names
+   - `random_effect` → your random effect variable
+
+2. Adjust the `abcd_prefix` in `convert_to_dk()` based on your brain measure:
+   - Cortical thickness: `"smri_thick_cdk_"`
+   - Surface area: `"smri_area_cdk_"`
+   - Volume: `"smri_vol_cdk_"`
+
+3. Modify plot limits and color schemes as needed for your specific analysis
+
+4. Ensure you have the ABCD2ggseg mapping file that links ABCD region names to ggseg atlas labels
