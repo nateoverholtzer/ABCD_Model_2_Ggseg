@@ -121,8 +121,7 @@ convert_to_dk <- function(data, abcd_prefix = "smri_thick_cdk_") {
   data %>%
     rename(ABCD_name = coefficient_name) %>%
     mutate(ABCD_name = str_remove(ABCD_name, abcd_prefix)) %>% 
-    inner_join(ABCD2ggseg, by = c("ABCD_name")) %>%
-    select(ggseg_dk_name)
+    inner_join(ABCD2ggseg, by = c("ABCD_name")) 
 }
 ```
 
