@@ -244,12 +244,16 @@ print(results_data)
 You may choose to plot Cohen's f² instead of standardized betas, especially if standardization would change the significance values (e.g., in some instances of interaction effects). To do this, simply replace `std_beta` with `cohens_f2` in the `aes(fill = ...)` argument of your `geom_brain()` plots and adjust the color scale limits accordingly.
 
 ```{r plot_all_results, eval=FALSE}
+atlas <- dk()
+## Turn off if you want all 8 views (superior, inferior, lateral, and medial; right and left) vs 4 views (lateral and medial; right and left)
+atlas$data$sf <- atlas$data$sf %>% filter(view %in% c("lateral", "medial")) 
+
 plot_all <- 
   results_data %>%
   group_by(group) %>%
   ggplot() +
-  geom_brain(atlas = dk, 
-             position = position_brain(hemi ~ side),
+  geom_brain(atlas = atlas, 
+             position = position_brain(hemi ~ view),
              aes(fill = std_beta)) +
   scale_fill_gradient2(high = "red", mid = "white", low = "blue", 
                        midpoint = 0,
@@ -275,8 +279,8 @@ plot_uncorrected <-
   mutate(std_beta = ifelse(p_values < 0.05, std_beta, NA)) %>%
   group_by(group) %>%
   ggplot() +
-  geom_brain(atlas = dk, 
-             position = position_brain(hemi ~ side),
+  geom_brain(atlas = atlas, 
+             position = position_brain(hemi ~ view),
              aes(fill = std_beta)) +
   scale_fill_gradient2(high = "red", mid = "white", low = "blue", 
                        midpoint = 0,
@@ -302,8 +306,8 @@ plot_fdr <-
   mutate(std_beta = ifelse(p_fdr < 0.05, std_beta, NA)) %>%
   group_by(group) %>%
   ggplot() +
-  geom_brain(atlas = dk, 
-             position = position_brain(hemi ~ side),
+  geom_brain(atlas = atlas, 
+             position = position_brain(hemi ~ view),
              aes(fill = std_beta)) +
   scale_fill_gradient2(high = "red", mid = "white", low = "blue", 
                        midpoint = 0,
